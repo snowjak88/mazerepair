@@ -6,7 +6,8 @@ type BoardTileProps = {
     row: number;
     column: number;
     tile: Tile;
-    rotation: number;
+    rotation?: number;
+    onRotate?: (row: number, column: number, tile: Tile) => void;
 }
 
 class BoardTile extends React.Component<BoardTileProps, {tile: Tile}> {
@@ -15,13 +16,19 @@ class BoardTile extends React.Component<BoardTileProps, {tile: Tile}> {
         super(props);
 
         this.state = {
-            tile: props.tile.rotate(props.rotation)
+            tile: props.tile.rotate(props.rotation || 0)
         }
     }
 
     public onClickTile(): void {
+        this.rotateTile();
+        if(this.props.onRotate)
+            this.props.onRotate(this.props.row, this.props.column, this.state.tile);
+    }
+
+    public rotateTile(steps:number = 1): void {
         this.setState({
-            tile: this.state.tile.rotate(1)
+            tile: this.state.tile.rotate(steps)
         });
     }
 

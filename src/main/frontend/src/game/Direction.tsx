@@ -57,6 +57,15 @@ namespace Direction {
     export function fromDxDy(dx: number, dy:number): Direction {
         return _dxdy[`${dx}/${dy}`];
     }
+
+    export function toDxDy(direction: Direction): {dx:number, dy:number} {
+        switch(direction) {
+            case Direction.NORTH: return {dx:0, dy:-1};
+            case Direction.EAST: return {dx:1, dy:0};
+            case Direction.SOUTH: return {dx:0, dy:1};
+            case Direction.WEST: return {dx:-1, dy:0};
+        }
+    }
 }
 
 export default Direction;

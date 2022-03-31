@@ -40,6 +40,12 @@ class Tile {
     }
 
     //
+    // Determines if this tile has at least one path to the given direction.
+    public hasPathTo(direction: Direction): boolean {
+        return this.paths.some(path => path.some(d => d === direction));
+    }
+
+    //
     // For the given other tile offset from this tile by dx/dy,
     // determine if this tile and the other are connected by at least one path.
     public pathTo(other: Tile, dx: number, dy: number): boolean {
