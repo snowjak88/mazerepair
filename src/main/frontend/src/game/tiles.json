@@ -1,0 +1,43 @@
+[
+  {
+    "id": "straight",
+    "name": "Straight",
+    "image": "straight.png",
+    "paths": [
+      ["EAST", "WEST"]
+    ]
+  },
+  {
+    "id": "corner",
+    "name": "Corner",
+    "image": "corner.png",
+    "paths": [
+      [ "EAST", "SOUTH" ]
+    ]
+  },
+  {
+    "id": "opposite-corners",
+    "name": "Opposite Corners",
+    "image": "opposite-corners.png",
+    "paths": [
+      [ "EAST", "SOUTH" ],
+      [ "WEST", "NORTH" ]
+    ]
+  },
+  {
+    "id": "3-intersection",
+    "name": "3-Intersection",
+    "image": "3-intersection.png",
+    "paths": [
+      ["WEST", "EAST", "SOUTH"]
+    ]
+  },
+  {
+    "id": "4-intersection",
+    "name": "4-Intersection",
+    "image": "4-intersection.png",
+    "paths": [
+      ["WEST", "EAST", "SOUTH", "NORTH"]
+    ]
+  }
+]

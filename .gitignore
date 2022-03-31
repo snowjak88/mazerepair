@@ -1,0 +1,18 @@
+### IntelliJ Generated
+.idea
+*.iml
+
+### Eclipse Generated
+.settings/
+.project
+.classpath
+
+### Node Generated
+node_modules/
+*.log*
+dist/
+
+### Gradle Generated
+build/
+.gradle/
+/src/main/frontend/public/assets/tiles/
