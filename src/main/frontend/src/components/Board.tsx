@@ -28,23 +28,39 @@ class Board extends React.Component<BoardProps, BoardState> {
 
     constructor(props: BoardProps) {
         super(props);
+        this.initBoardState(true);
+    }
 
-        if(props.seed)
-            this.rnd = Random.get(props.seed);
+    private initBoardState(fromConstructor: boolean = false): void {
+        if(this.props.seed)
+            this.rnd = Random.get(this.props.seed);
+        console.log(`Seed: ${this.props.seed}`);
 
-        const tiles: Tile[][] = new Array(props.rows);
-        for(let i=0; i<props.rows; i++)
-            tiles[i] = new Array(props.cols);
+        const tiles: Tile[][] = new Array(this.props.rows);
+        for(let i=0; i<this.props.rows; i++)
+            tiles[i] = new Array(this.props.cols);
         this.initBoard(tiles);
 
-        if(props.randomize || props.randomize === undefined)
+        if(this.props.randomize || this.props.randomize === undefined)
             this.rotateBoardTiles(tiles);
-
-        this.state = {
+        const newState: BoardState = {
             tiles: tiles,
             validCells: tiles.map((row,i) => row.map((tile,j) => this.isTileValid(i, j, tiles, tile))) as boolean[][],
             moveCount: 0
         };
+
+        if(fromConstructor)
+            this.state = newState;
+        else
+            this.setState(newState);
+    }
+
+    componentDidUpdate(prevProps: BoardProps, prevState: BoardState) {
+        if(prevProps.seed !== this.props.seed) {
+            console.log(`Seed changed: ${prevProps.seed} -> ${this.props.seed}`);
+            this.initBoardState();
+            this.forceUpdate();
+            }
     }
 
     private shuffle<T>(array: T[]):T[] {
