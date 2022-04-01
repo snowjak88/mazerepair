@@ -9,6 +9,7 @@ type ApplicationProp = {};
 
 type ApplicationState = {
   seed: string;
+  boardLocked: boolean;
 }
 
 class Application extends React.Component<ApplicationProp, ApplicationState> {
@@ -16,7 +17,8 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
     constructor(props: ApplicationProp) {
         super(props);
         this.state = {
-            seed: Application.getTodayString()
+            seed: Application.getTodayString(),
+            boardLocked: false
         };
     }
 
@@ -31,18 +33,26 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
 
     private randomPuzzle() {
         this.setState({
-            seed: Application.getRandomString()
+            seed: Application.getRandomString(),
+            boardLocked: false
         });
     }
 
     private todayPuzzle() {
         this.setState({
-            seed: Application.getTodayString()
+            seed: Application.getTodayString(),
+            boardLocked: false
+        });
+    }
+
+    private gameOver() {
+        this.setState({
+            boardLocked: true
         });
     }
 
     render() {
-        console.log(`Application.render() seed=${this.state.seed}`);
+        console.log(`Application.render() -- seed: ${this.state.seed}, locked: ${this.state.boardLocked}`);
         return (
                 <div className={"container"}>
                     <h1 className="title">Maze-Repair</h1>
@@ -50,7 +60,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                         <button onClick={() => this.randomPuzzle()}>Random</button>
                         <button onClick={() => this.todayPuzzle()}>Today's Maze</button>
                     </div>
-                    <Board rows={5} cols={5} seed={this.state.seed} />
+                    <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked} onValidBoard={() => this.gameOver()} />
                 </div>
             );
     }

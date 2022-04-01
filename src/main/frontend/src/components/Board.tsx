@@ -12,6 +12,8 @@ type BoardProps = {
     cols: number;
     seed?: string;
     randomize?: boolean;
+    onValidBoard?: (moveCount:number) => void;
+    locked?: boolean;
 };
 
 type BoardState = {
@@ -56,11 +58,15 @@ class Board extends React.Component<BoardProps, BoardState> {
     }
 
     componentDidUpdate(prevProps: BoardProps, prevState: BoardState) {
-        if(prevProps.seed !== this.props.seed) {
-            console.log(`Seed changed: ${prevProps.seed} -> ${this.props.seed}`);
+        super.componentDidUpdate?.(prevProps, prevState);
+
+        if(prevProps.rows !== this.props.rows || prevProps.cols !== this.props.cols
+            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize) {
             this.initBoardState();
+        }
+        if(prevProps.locked !== this.props.locked) {
             this.forceUpdate();
-            }
+        }
     }
 
     private shuffle<T>(array: T[]):T[] {
@@ -162,7 +168,9 @@ class Board extends React.Component<BoardProps, BoardState> {
     }
 
     private onTileClick(row: number, col: number) {
-        console.log(`Rotating tile at ${row}, ${col}`);
+
+        if(this.props.locked)
+            return;
 
         this.state.tiles[row][col] = this.state.tiles[row][col].rotate();
 
@@ -177,9 +185,14 @@ class Board extends React.Component<BoardProps, BoardState> {
             this.state.validCells[ny][nx] = this.isTileValid(ny, nx, this.state.tiles);
         });
 
+        const isValid = this.state.validCells.every(row => row.every(cell => cell));
+
         this.setState(prevState => ({
             moveCount: prevState.moveCount + 1
-        }));
+        }), () => {
+            if(isValid)
+                this.props.onValidBoard?.(this.state.moveCount);
+        });
     }
 
     render() {
