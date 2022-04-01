@@ -11,8 +11,8 @@ const Application = (props: ApplicationProp) => {
 
     return (
         <div className={"container"}>
-            <h1 className="title">Welcome To Your Template</h1>
-            <Board rows={5} cols={5} />
+            <h1 className="title">Maze-Repair</h1>
+            <Board rows={6} cols={6} seed={"ABCDE12345"} />
         </div>
     );
 };

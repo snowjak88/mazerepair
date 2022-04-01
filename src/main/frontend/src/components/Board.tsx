@@ -1,35 +1,36 @@
 import React from 'react';
 
+import Random from '../game/Random';
 import Direction from '../game/Direction';
 import TileRepository from '../game/TileRepository';
 import Tile from '../game/Tile';
-import BoardTile from './BoardTile';
 
-function shuffle<T>(array: T[]):T[] {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
+import BoardTile from './BoardTile';
 
 type BoardProps = {
     rows: number;
     cols: number;
+    seed?: string;
     randomize?: boolean;
 };
 
 type BoardState = {
     tiles: Tile[][];
-    validCells: boolean[][]
+    validCells: boolean[][];
+    moveCount: number;
 };
 
 const cardinalDirections: Direction[] = [ Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST ];
 
 class Board extends React.Component<BoardProps, BoardState> {
 
+    private rnd: () => number = Math.random;
+
     constructor(props: BoardProps) {
         super(props);
+
+        if(props.seed)
+            this.rnd = Random.get(props.seed);
 
         const tiles: Tile[][] = new Array(props.rows);
         for(let i=0; i<props.rows; i++)
@@ -41,8 +42,17 @@ class Board extends React.Component<BoardProps, BoardState> {
 
         this.state = {
             tiles: tiles,
-            validCells: tiles.map((row,i) => row.map((tile,j) => this.isTileValid(i, j, tiles, tile))) as boolean[][]
+            validCells: tiles.map((row,i) => row.map((tile,j) => this.isTileValid(i, j, tiles, tile))) as boolean[][],
+            moveCount: 0
         };
+    }
+
+    private shuffle<T>(array: T[]):T[] {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(this.rnd() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 
     private initBoard(tiles: (Tile|undefined)[][], row:number = 0, col:number = 0): boolean {
@@ -53,7 +63,7 @@ class Board extends React.Component<BoardProps, BoardState> {
          if(col >= tiles[row].length)
              return this.initBoard(tiles, row + 1, 0);
 
-         for(let t of shuffle(TileRepository.getInstance().getTiles())) {
+         for(let t of this.shuffle(TileRepository.getInstance().getTiles())) {
 
              var tile: Tile = t;
              for(let rotation = 0; rotation < 4; rotation++) {
@@ -74,7 +84,7 @@ class Board extends React.Component<BoardProps, BoardState> {
     private rotateBoardTiles(tiles: Tile[][]): void {
         for(let row = 0; row < tiles.length; row++)
             for(let col = 0; col < tiles[row].length; col++)
-                tiles[row][col] = tiles[row][col].rotate( Math.floor(Math.random() * 4) );
+                tiles[row][col] = tiles[row][col].rotate( Math.floor(this.rnd() * 4) );
     }
 
     private isTileValid(row: number, col: number, tiles:(Tile | undefined)[][] = [], tile: (Tile | undefined ) = undefined): boolean {
@@ -151,7 +161,9 @@ class Board extends React.Component<BoardProps, BoardState> {
             this.state.validCells[ny][nx] = this.isTileValid(ny, nx, this.state.tiles);
         });
 
-        this.forceUpdate();
+        this.setState(prevState => ({
+            moveCount: prevState.moveCount + 1
+        }));
     }
 
     render() {
@@ -168,14 +180,21 @@ class Board extends React.Component<BoardProps, BoardState> {
             rowElements.push( <tr key={`row-${i}`} className="row">{row}</tr> );
         }
 
+        const isValid = this.state.validCells.every(row => row.every(cell => cell));
+        const isValidClass = isValid ? "valid" : "";
+
         return (
-            <div className={"board"}>
+            <div className={`board ${isValidClass}`}>
+                <table>
+                    <tbody>
+                        <tr><td>Moves: {this.state.moveCount}</td></tr>
+                    </tbody>
+                </table>
                 <table>
                     <tbody>
                         {rowElements}
                     </tbody>
                 </table>
-                <h1>{this.state.validCells.every(row => row.every(cell => cell)) ? "Valid!" : "Invalid"}</h1>
             </div>
         );
     }
