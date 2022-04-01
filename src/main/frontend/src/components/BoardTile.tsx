@@ -6,34 +6,17 @@ type BoardTileProps = {
     row: number;
     column: number;
     tile: Tile;
-    rotation?: number;
-    onRotate?: (row: number, column: number, tile: Tile) => void;
+    onClick?: (row: number, column: number, tile: Tile) => void;
 }
 
 class BoardTile extends React.Component<BoardTileProps, {tile: Tile}> {
 
-    constructor(props: BoardTileProps) {
-        super(props);
-
-        this.state = {
-            tile: props.tile.rotate(props.rotation || 0)
-        }
-    }
-
-    public onClickTile(): void {
-        this.rotateTile();
-        if(this.props.onRotate)
-            this.props.onRotate(this.props.row, this.props.column, this.state.tile);
-    }
-
-    public rotateTile(steps:number = 1): void {
-        this.setState({
-            tile: this.state.tile.rotate(steps)
-        });
+    private onClickTile(): void {
+        this.props.onClick?.(this.props.row, this.props.column, this.props.tile);
     }
 
     render() {
-        const tile = this.state.tile;
+        const tile = this.props.tile;
         const tileImageName = `./assets/tiles/${tile.image}`;
         return (
             <img className="boardTile"
