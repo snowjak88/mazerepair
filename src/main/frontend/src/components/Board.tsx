@@ -61,12 +61,11 @@ class Board extends React.Component<BoardProps, BoardState> {
         super.componentDidUpdate?.(prevProps, prevState);
 
         if(prevProps.rows !== this.props.rows || prevProps.cols !== this.props.cols
-            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize) {
+            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize)
             this.initBoardState();
-        }
-        if(prevProps.locked !== this.props.locked) {
+
+        if(prevProps !== this.props)
             this.forceUpdate();
-        }
     }
 
     private shuffle<T>(array: T[]):T[] {
@@ -215,11 +214,9 @@ class Board extends React.Component<BoardProps, BoardState> {
         return (
             <div className={`board ${isValidClass}`}>
                 <table>
-                    <tbody>
-                        <tr><td>Moves: {this.state.moveCount}</td></tr>
-                    </tbody>
-                </table>
-                <table>
+                    <thead>
+                        <tr><td colSpan={cols}>Moves: {this.state.moveCount}</td></tr>
+                    </thead>
                     <tbody>
                         {rowElements}
                     </tbody>
