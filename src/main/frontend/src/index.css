@@ -7,9 +7,36 @@
 .container {
     min-height: 100vh;
     margin: 0 auto;
+    width: 50%;
+    min-width: 800px;
 }
 
 .title {
     font-size: 3em;
     text-transform: uppercase;
+    text-align: center;
+}
+
+table th {
+    text-align: center;
+}
+
+.gameControlsContainer {
+    display: flex;
+    justify-content: space-between;
+    margin: auto;
+    width: 25%;
+}
+
+.gameBoardHistoryContainer {
+    display: flex;
+}
+
+.gameBoardContainer {
+    width: 75%;
+    min-width: 650px;
+}
+
+.gameHistoryContainer {
+    width: 25%;
 }
