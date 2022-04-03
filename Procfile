@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar target/maze-repair-0.1.1.jar
+web: java -Dserver.port=$PORT -jar target/*.jar
