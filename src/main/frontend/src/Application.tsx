@@ -9,8 +9,10 @@ import CompletionHistory from "./components/CompletionHistory";
 type ApplicationProp = {};
 
 type ApplicationState = {
-  seed: string;
-  boardLocked: boolean;
+    seed: string;
+    victoryMoveCount?: number;
+    victoryMessageVisible: boolean;
+    boardLocked: boolean;
 }
 
 class Application extends React.Component<ApplicationProp, ApplicationState> {
@@ -21,6 +23,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         super(props);
         this.state = {
             seed: Application.getTodayString(),
+            victoryMessageVisible: false,
             boardLocked: false
         };
     }
@@ -37,6 +40,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
     private randomPuzzle() {
         this.setState({
             seed: Application.getRandomString(),
+            victoryMessageVisible: false,
             boardLocked: false
         });
     }
@@ -44,13 +48,16 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
     private todayPuzzle() {
         this.setState({
             seed: Application.getTodayString(),
-            boardLocked: false
+            victoryMessageVisible: (this.state.seed === Application.getTodayString() && this.state.victoryMessageVisible),
+            boardLocked: (this.state.seed === Application.getTodayString() && this.state.boardLocked)
         });
     }
 
     private gameOver(moveCount:number) {
         this.completionHistoryListener?.(moveCount);
         this.setState({
+            victoryMoveCount: moveCount,
+            victoryMessageVisible: true,
             boardLocked: true
         });
     }
@@ -66,6 +73,9 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                     <div className="gameBoardHistoryContainer">
                         <div className="gameBoardContainer">
                             <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked} onValidBoard={(moveCount) => this.gameOver(moveCount)} />
+                            <div className={`victoryPopup ${(this.state.victoryMessageVisible) ? "visible" : ""}`}>
+                                <h1>Finished in {this.state.victoryMoveCount} moves</h1>
+                            </div>
                         </div>
                         <div className="gameHistoryContainer">
                             <CompletionHistory registerCompletionListener={(listener) => this.completionHistoryListener = listener}

@@ -71,8 +71,9 @@ class Board extends React.Component<BoardProps, BoardState> {
         super.componentDidUpdate?.(prevProps, prevState);
 
         if(prevProps.rows !== this.props.rows || prevProps.cols !== this.props.cols
-            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize)
+            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize) {
             this.initBoardState();
+        }
 
         if(prevProps !== this.props)
             this.forceUpdate();
