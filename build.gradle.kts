@@ -9,9 +9,8 @@ plugins {
     id("com.github.node-gradle.node")
 }
 
-// change me to your group name //
 group = "org.snowjak"
-version = if (version != "unspecified") version else "0.0.0"
+version = 0.1.0 //if (version != "unspecified") version else "0.0.0"
 description = "Simple tile-rotation game"
 
 repositories {
