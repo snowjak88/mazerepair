@@ -19,6 +19,10 @@ class Tile {
         this.rotation = rotation;
     }
 
+    public clone(): Tile {
+        return new Tile(this.id, this.name, this.image, this.paths, this.rotation);
+    }
+
     private static rotatePaths(paths: Direction[][], steps: number): Direction[][] {
         if (steps === 0)
             return paths;

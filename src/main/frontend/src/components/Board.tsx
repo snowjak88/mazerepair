@@ -17,6 +17,7 @@ type BoardProps = {
 };
 
 type BoardState = {
+    startingTiles: Tile[][];
     tiles: Tile[][];
     validCells: boolean[][];
     moveCount: number;
@@ -27,6 +28,14 @@ const cardinalDirections: Direction[] = [ Direction.NORTH, Direction.EAST, Direc
 class Board extends React.Component<BoardProps, BoardState> {
 
     private rnd: () => number = Math.random;
+    private shuffle<T>(array: T[]):T[] {
+        const shuffled = Array.from(array);
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(this.rnd() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
 
     constructor(props: BoardProps) {
         super(props);
@@ -35,7 +44,7 @@ class Board extends React.Component<BoardProps, BoardState> {
 
     private initBoardState(fromConstructor: boolean = false): void {
         if(this.props.seed)
-            this.rnd = Random.get(this.props.seed);
+            this.rnd = Random(this.props.seed);
         console.log(`Seed: ${this.props.seed}`);
 
         const tiles: Tile[][] = new Array(this.props.rows);
@@ -47,6 +56,7 @@ class Board extends React.Component<BoardProps, BoardState> {
             this.rotateBoardTiles(tiles);
         const newState: BoardState = {
             tiles: tiles,
+            startingTiles: tiles.map(row => row.map(tile => tile.clone())),
             validCells: tiles.map((row,i) => row.map((tile,j) => this.isTileValid(i, j, tiles, tile))) as boolean[][],
             moveCount: 0
         };
@@ -68,14 +78,6 @@ class Board extends React.Component<BoardProps, BoardState> {
             this.forceUpdate();
     }
 
-    private shuffle<T>(array: T[]):T[] {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(this.rnd() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
     private initBoard(tiles: (Tile|undefined)[][], row:number = 0, col:number = 0): boolean {
 
          if(row >= tiles.length)
@@ -84,20 +86,20 @@ class Board extends React.Component<BoardProps, BoardState> {
          if(col >= tiles[row].length)
              return this.initBoard(tiles, row + 1, 0);
 
-         for(let t of this.shuffle(TileRepository.getInstance().getTiles())) {
+        for(let t of this.shuffle( TileRepository.getInstance().getTiles() )) {
 
-             var tile: Tile = t;
-             for(let rotation = 0; rotation < 4; rotation++) {
-                 tile = tile.rotate();
+            var tile: Tile = t;
+            for(let rotation = 0; rotation < 4; rotation++) {
+                tile = tile.rotate();
 
-                 if(this.isTileValid(row, col, tiles, tile)) {
-                     tiles[row][col] = tile;
-                     if(this.initBoard(tiles, row, col + 1))
-                         return true;
-                 }
-                 tiles[row][col] = undefined;
-             }
-         }
+                if(this.isTileValid(row, col, tiles, tile)) {
+                    tiles[row][col] = tile;
+                    if(this.initBoard(tiles, row, col + 1))
+                        return true;
+                }
+                tiles[row][col] = undefined;
+            }
+        }
 
          return false;
     }
@@ -194,6 +196,16 @@ class Board extends React.Component<BoardProps, BoardState> {
         });
     }
 
+    private resetBoard() {
+        if(this.props.locked)
+            return;
+
+        this.setState({
+            tiles: this.state.startingTiles.map(row => row.map(tile => tile.clone())),
+            moveCount: 0
+        });
+    }
+
     render() {
         const { rows, cols } = this.props;
 
@@ -202,7 +214,7 @@ class Board extends React.Component<BoardProps, BoardState> {
             const row = [];
             for(let j = 0; j < cols; j++) {
                 const tile = this.state.tiles[i][j]
-                row.push( <BoardTile key={`tile-${i}-${j}`} row={i} column={j} tile={tile} onClick={(row,col) => this.onTileClick(row,col)} /> );
+                row.push( <td><BoardTile key={`tile-${i}-${j}`} row={i} column={j} tile={tile} onClick={(row,col) => this.onTileClick(row,col)} /></td> );
             }
 
             rowElements.push( <tr key={`row-${i}`} className="row">{row}</tr> );
@@ -215,7 +227,10 @@ class Board extends React.Component<BoardProps, BoardState> {
             <div className={`board ${isValidClass}`}>
                 <table>
                     <thead>
-                        <tr><td colSpan={cols}>Moves: {this.state.moveCount}</td></tr>
+                        <tr>
+                            <th colSpan={cols-1}>Moves: {this.state.moveCount}</th>
+                            <th colSpan={1}><button disabled={this.props.locked} onClick={() => this.resetBoard()}>Reset</button></th>
+                        </tr>
                     </thead>
                     <tbody>
                         {rowElements}

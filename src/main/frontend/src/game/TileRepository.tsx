@@ -34,6 +34,7 @@ class TileRepository {
             });
             this.tiles.push(new Tile(descriptor.id, descriptor.name, descriptor.image, paths));
         });
+        this.tiles.sort((a,b) => (a.id < b.id) ? -1 : 1);
     }
 
     public getTiles(): Tile[] {
