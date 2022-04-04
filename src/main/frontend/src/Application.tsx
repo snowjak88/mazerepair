@@ -69,6 +69,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         this.onMove = this.onMove.bind(this);
         this.onBlockedMove = this.onBlockedMove.bind(this);
         this.randomPuzzle = this.randomPuzzle.bind(this);
+        this.registerBoardResetListener = this.registerBoardResetListener.bind(this);
         this.reset = this.reset.bind(this);
         this.todayPuzzle = this.todayPuzzle.bind(this);
         this.closeBoardLockedPopup = this.closeBoardLockedPopup.bind(this);
@@ -140,11 +141,11 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         });
     }
 
-    private gameMenuClose() {
+    private gameMenuClose(after?: () => void) {
         this.setState({
             gameMenuOpen: false,
             gameMenuAnchor: null
-        });
+        }, after);
     }
 
     private closeBoardLockedPopup() {
@@ -171,6 +172,20 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         });
     }
 
+    private registerBoardResetListener(listener: () => void) {
+        console.log('registering board reset listener');
+        this.resetBoardListener = listener;
+    }
+
+    private board(): Board {
+        return (
+            <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
+                    onMove={this.onMove} onBlockedMove={this.onBlockedMove}
+                    onResetBoard={this.registerBoardResetListener}
+                    onValidBoard={this.gameOver} />
+        );
+    }
+
     render() {
         return (
                 <Container>
@@ -182,14 +197,14 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                             </IconButton>
                             <Menu id="game-menu" className={styles.menuButton}
                                     anchorEl={this.state.gameMenuAnchor} open={this.state.gameMenuOpen} onClose={this.gameMenuClose}>
-                                <MenuItem onClick={() => { this.gameMenuClose(); this.todayPuzzle(); }}
+                                <MenuItem onClick={() => { this.gameMenuClose(this.todayPuzzle); }}
                                         aria-label="today's maze">
                                     <IconButton>
                                         <TodayIcon />
                                     </IconButton>
                                     <Typography>Today's Maze</Typography>
                                 </MenuItem>
-                                <MenuItem onClick={() => { this.gameMenuClose(); this.randomPuzzle(); }}
+                                <MenuItem onClick={() => { this.gameMenuClose(this.randomPuzzle); }}
                                         aria-label="random maze">
                                     <IconButton>
                                         <ShuffleIcon />
@@ -207,7 +222,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                                     </MenuItem>
                                 </Hidden>
                                 <Divider variant="middle"/>
-                                <MenuItem onClick={() => { this.gameMenuClose(); this.reset(); }}
+                                <MenuItem onClick={() => { this.gameMenuClose(this.reset); }}
                                         aria-label="reset board">
                                     <IconButton>
                                         <SettingsBackupRestoreIcon />
@@ -231,16 +246,12 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                     <Grid container wrap="nowrap" direction="row">
                         <Hidden mdUp>
                             <Grid item xs={12} alignContent="center">
-                                <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
-                                        onMove={this.onMove} onBlockedMove={this.onBlockedMove}
-                                        onValidBoard={this.gameOver} />
+                                {this.board()}
                             </Grid>
                         </Hidden>
                         <Hidden smDown>
                             <Grid item xs={9} alignContent="center">
-                                <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
-                                        onMove={this.onMove} onBlockedMove={this.onBlockedMove}
-                                        onValidBoard={this.gameOver} />
+                                {this.board()}
                             </Grid>
                             <Grid item xs={3}>
                                 <CompletionHistory showHeader

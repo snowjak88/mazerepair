@@ -44,6 +44,11 @@ class Board extends React.Component<BoardProps, BoardState> {
 
     constructor(props: BoardProps) {
         super(props);
+
+        this.resetBoard = this.resetBoard.bind(this);
+
+        this.props.onResetBoard?.(() => this.resetBoard());
+
         this.initBoardState(true);
     }
 
@@ -66,14 +71,10 @@ class Board extends React.Component<BoardProps, BoardState> {
             moveCount: 0
         };
 
-        if(fromConstructor) {
+        if(fromConstructor)
             this.state = newState;
-            this.props.onResetBoard?.(() => this.resetBoard());
-        }
         else
-            this.setState(
-                newState,
-                () => this.props.onResetBoard?.(() => this.resetBoard()));
+            this.setState(newState);
     }
 
     componentDidUpdate(prevProps: BoardProps, prevState: BoardState) {
@@ -209,8 +210,11 @@ class Board extends React.Component<BoardProps, BoardState> {
     }
 
     private resetBoard() {
-        if(this.props.locked)
+        console.log("Resetting board");
+        if(this.props.locked) {
+            this.props.onBlockedMove?.();
             return;
+        }
 
         this.setState({
             tiles: this.state.startingTiles.map(row => row.map(tile => tile.clone())),
