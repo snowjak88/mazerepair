@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Grid, Paper } from '@material-ui/core';
+
 import Random from '../game/Random';
 import Direction from '../game/Direction';
 import TileRepository from '../game/TileRepository';
@@ -12,7 +14,10 @@ type BoardProps = {
     cols: number;
     seed?: string;
     randomize?: boolean;
+    onMove?: () => void;
+    onBlockedMove?: () => void;
     onValidBoard?: (moveCount:number) => void;
+    onResetBoard?: (listener:() => void) => void;
     locked?: boolean;
 };
 
@@ -61,19 +66,22 @@ class Board extends React.Component<BoardProps, BoardState> {
             moveCount: 0
         };
 
-        if(fromConstructor)
+        if(fromConstructor) {
             this.state = newState;
+            this.props.onResetBoard?.(() => this.resetBoard());
+        }
         else
-            this.setState(newState);
+            this.setState(
+                newState,
+                () => this.props.onResetBoard?.(() => this.resetBoard()));
     }
 
     componentDidUpdate(prevProps: BoardProps, prevState: BoardState) {
         super.componentDidUpdate?.(prevProps, prevState);
 
         if(prevProps.rows !== this.props.rows || prevProps.cols !== this.props.cols
-            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize) {
+            || prevProps.seed !== this.props.seed || prevProps.randomize !== this.props.randomize)
             this.initBoardState();
-        }
 
         if(prevProps !== this.props)
             this.forceUpdate();
@@ -171,8 +179,10 @@ class Board extends React.Component<BoardProps, BoardState> {
 
     private onTileClick(row: number, col: number) {
 
-        if(this.props.locked)
+        if(this.props.locked) {
+            this.props.onBlockedMove?.();
             return;
+        }
 
         this.state.tiles[row][col] = this.state.tiles[row][col].rotate();
 
@@ -192,6 +202,7 @@ class Board extends React.Component<BoardProps, BoardState> {
         this.setState(prevState => ({
             moveCount: prevState.moveCount + 1
         }), () => {
+            this.props.onMove?.();
             if(isValid)
                 this.props.onValidBoard?.(this.state.moveCount);
         });
@@ -215,29 +226,24 @@ class Board extends React.Component<BoardProps, BoardState> {
             const row = [];
             for(let j = 0; j < cols; j++) {
                 const tile = this.state.tiles[i][j]
-                row.push( <td><BoardTile key={`tile-${i}-${j}`} row={i} column={j} tile={tile} onClick={(row,col) => this.onTileClick(row,col)} /></td> );
+                row.push(
+                    <Grid item wrap="nowrap">
+                        <BoardTile key={`tile-${i}-${j}`} row={i} column={j} tile={tile} onClick={(row,col) => this.onTileClick(row,col)} />
+                    </Grid>
+                );
             }
 
-            rowElements.push( <tr key={`row-${i}`} className="row">{row}</tr> );
+            rowElements.push(
+                <Grid key={`row-${i}`} container direction="row" wrap="nowrap" justifyContent="center" alignItems="center">{row}</Grid>
+            );
         }
 
-        const isValid = this.state.validCells.every(row => row.every(cell => cell));
-        const isValidClass = isValid ? "valid" : "";
-
         return (
-            <div className={`board ${isValidClass}`}>
-                <table>
-                    <thead>
-                        <tr>
-                            <th colSpan={cols-1}>Moves: {this.state.moveCount}</th>
-                            <th colSpan={1}><button disabled={this.props.locked} onClick={() => this.resetBoard()}>Reset</button></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rowElements}
-                    </tbody>
-                </table>
-            </div>
+            <Paper>
+                <Grid container direction="column" wrap="nowrap" justifyContent="center" alignItems="center">
+                    {rowElements}
+                </Grid>
+            </Paper>
         );
     }
 }

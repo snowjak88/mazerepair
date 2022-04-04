@@ -21,7 +21,7 @@ class BoardTile extends React.Component<BoardTileProps, {tile: Tile}> {
         return (
             <img className="boardTile"
                  onClick={() => this.onClickTile()}
-                 style={{ transform: `rotate(${tile.rotation * 90}deg)` }}
+                 style={{ transform: `rotate(${tile.rotation * 90}deg)`, width: '100%', objectFit: 'contain' }}
                  src={tileImageName} alt={tile.name} />
         );
     }

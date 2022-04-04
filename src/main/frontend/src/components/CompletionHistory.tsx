@@ -1,5 +1,10 @@
 import React from 'react';
 
+import { List, ListItem, ListItemIcon, ListItemText, Paper, Typography } from '@material-ui/core';
+
+import DoneAllIcon from '@material-ui/icons/DoneAll';
+import RotateRightIcon from '@material-ui/icons/RotateRight';
+
 type CompletionHistoryProps = {
     registerCompletionListener: (listener: (moveCount: number) => void) => void;
     unregisterCompletionListener: () => void;
@@ -63,25 +68,33 @@ class CompletionHistory extends React.Component<CompletionHistoryProps, Completi
 
     render() {
         return (
-            <div className="completionHistory">
-                <table>
-                    <thead>
-                        <tr>
-                            <th colSpan={2}>Stats</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Total Games Played</td>
-                            <td>{this.state.totalCompletions}</td>
-                        </tr>
-                        <tr>
-                            <td>Avg Moves/Win</td>
-                            <td>{(this.state.totalCompletions === 0) ? 0 : this.state.totalMoves / this.state.totalCompletions}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <Paper>
+                <Typography variant="h6">
+                    Stats
+                </Typography>
+                <List>
+                    <ListItem>
+                        <ListItemIcon>
+                            <DoneAllIcon />
+                        </ListItemIcon>
+                        <ListItemText>
+                            <Typography noWrap>
+                                {this.state.totalCompletions} completed
+                            </Typography>
+                        </ListItemText>
+                    </ListItem>
+                    <ListItem>
+                        <ListItemIcon>
+                            <RotateRightIcon />
+                        </ListItemIcon>
+                        <ListItemText>
+                            <Typography noWrap>
+                                {(this.state.totalCompletions === 0) ? 0 : this.state.totalMoves / this.state.totalCompletions} avg.
+                            </Typography>
+                        </ListItemText>
+                    </ListItem>
+                </List>
+            </Paper>
         );
     }
 }
