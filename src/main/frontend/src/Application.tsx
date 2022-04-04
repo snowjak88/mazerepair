@@ -196,7 +196,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                                 <MenuIcon />
                             </IconButton>
                             <Menu id="game-menu" className={styles.menuButton}
-                                    anchorEl={this.state.gameMenuAnchor} open={this.state.gameMenuOpen} onClose={this.gameMenuClose}>
+                                    anchorEl={this.state.gameMenuAnchor} open={this.state.gameMenuOpen} onClose={() => this.gameMenuClose()}>
                                 <MenuItem onClick={() => { this.gameMenuClose(this.todayPuzzle); }}
                                         aria-label="today's maze">
                                     <IconButton>
