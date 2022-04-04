@@ -100,11 +100,16 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
     }
 
     private reset() {
-        this.setState({
-            currentMoveCount: 0,
-            victoryMessageVisible: false,
-            boardLocked: false
-        }, () => this.resetBoardListener?.());
+        if(this.state.boardLocked)
+            this.setState({
+                boardLockedMessageVisible: true
+            });
+        else
+            this.setState({
+                currentMoveCount: 0,
+                victoryMessageVisible: false,
+                boardLocked: false
+            }, () => this.resetBoardListener?.());
     }
 
     private randomPuzzle() {
