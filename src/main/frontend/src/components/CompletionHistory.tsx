@@ -6,6 +6,7 @@ import DoneAllIcon from '@material-ui/icons/DoneAll';
 import RotateRightIcon from '@material-ui/icons/RotateRight';
 
 type CompletionHistoryProps = {
+    showHeader?: boolean;
     registerCompletionListener: (listener: (moveCount: number) => void) => void;
     unregisterCompletionListener: () => void;
 };
@@ -69,9 +70,11 @@ class CompletionHistory extends React.Component<CompletionHistoryProps, Completi
     render() {
         return (
             <Paper>
-                <Typography variant="h6">
-                    Stats
-                </Typography>
+                {this.props.showHeader && (
+                    <Typography variant="h6">
+                        Stats
+                    </Typography>
+                )}
                 <List>
                     <ListItem>
                         <ListItemIcon>

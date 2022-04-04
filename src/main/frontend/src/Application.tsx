@@ -1,9 +1,13 @@
 import React from "react";
 
-import { AppBar, Badge, Box, Container, Divider, Grid, IconButton, Menu, MenuItem, Snackbar, Toolbar, Tooltip, Typography } from '@material-ui/core';
+import { AppBar, Badge, Box, Container, Dialog, DialogTitle, Divider,
+        Grid, Hidden, IconButton, Menu, MenuItem, Snackbar,
+        Toolbar, Tooltip, Typography } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { withStyles, Theme } from '@material-ui/core/styles';
 
+import CloseIcon from '@material-ui/icons/Close';
+import DoneAllIcon from '@material-ui/icons/DoneAll';
 import MenuIcon from '@material-ui/icons/Menu';
 import SettingsBackupRestoreIcon from '@material-ui/icons/SettingsBackupRestore';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
@@ -28,14 +32,13 @@ type ApplicationState = {
     boardLocked: boolean;
     boardLockedMessageVisible: boolean;
 
+    statsPopupVisible: boolean;
+
     gameMenuOpen: boolean;
     gameMenuAnchor?: HTMLElement | null;
 }
 
 const styles = (theme: Theme) => ({
-    root: {
-
-    },
     menuButton: {
         marginRight: theme.spacing(2)
     }
@@ -43,7 +46,7 @@ const styles = (theme: Theme) => ({
 
 class Application extends React.Component<ApplicationProp, ApplicationState> {
 
-    private completionHistoryListener: ((moveCount:number) => void) | null = null;
+    private completionHistoryListeners: (((moveCount:number) => void) | null)[] = [null, null];
     private resetBoardListener: (() => void) | null = null;
 
     constructor(props: ApplicationProp) {
@@ -55,6 +58,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
             victoryMessageVisible: false,
             boardLocked: false,
             boardLockedMessageVisible: false,
+            statsPopupVisible: false,
             gameMenuOpen: false,
             gameMenuAnchor: null
         };
@@ -69,6 +73,8 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         this.todayPuzzle = this.todayPuzzle.bind(this);
         this.closeBoardLockedPopup = this.closeBoardLockedPopup.bind(this);
         this.closeVictoryPopup = this.closeVictoryPopup.bind(this);
+        this.showStatsPopup = this.showStatsPopup.bind(this);
+        this.hideStatsPopup = this.hideStatsPopup.bind(this);
     }
 
     private static getTodayString(): string {
@@ -119,7 +125,7 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
     }
 
     private gameOver(moveCount:number) {
-        this.completionHistoryListener?.(moveCount);
+        this.completionHistoryListeners.forEach( listener => listener?.(moveCount) );
         this.setState({
             victoryMoveCount: moveCount,
             victoryMessageVisible: true,
@@ -153,9 +159,21 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
         });
     }
 
+    private showStatsPopup() {
+        this.setState({
+            statsPopupVisible: true
+        });
+    }
+
+    private hideStatsPopup() {
+        this.setState({
+            statsPopupVisible: false
+        });
+    }
+
     render() {
         return (
-                <Container className={styles.root}>
+                <Container>
                     <AppBar position="static" color="transparent">
                         <Toolbar>
                             <IconButton onClick={this.gameMenuOpen} color="primary"
@@ -178,6 +196,16 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                                     </IconButton>
                                     <Typography>Random Maze</Typography>
                                 </MenuItem>
+                                <Hidden mdUp>
+                                    <Divider variant="middle"/>
+                                    <MenuItem onClick={this.showStatsPopup}
+                                            aria-label="show stats">
+                                        <IconButton>
+                                            <DoneAllIcon />
+                                        </IconButton>
+                                        <Typography>Stats</Typography>
+                                    </MenuItem>
+                                </Hidden>
                                 <Divider variant="middle"/>
                                 <MenuItem onClick={() => { this.gameMenuClose(); this.reset(); }}
                                         aria-label="reset board">
@@ -201,15 +229,35 @@ class Application extends React.Component<ApplicationProp, ApplicationState> {
                         </Toolbar>
                     </AppBar>
                     <Grid container wrap="nowrap" direction="row">
-                        <Grid item xs={9} alignContent="center">
-                            <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
-                                    onMove={this.onMove} onBlockedMove={this.onBlockedMove}
-                                    onValidBoard={this.gameOver} />
-                        </Grid>
-                        <Grid item xs={3}>
-                            <CompletionHistory registerCompletionListener={(listener) => this.completionHistoryListener = listener}
-                                    unregisterCompletionListener={() => this.completionHistoryListener = null} />
-                        </Grid>
+                        <Hidden mdUp>
+                            <Grid item xs={12} alignContent="center">
+                                <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
+                                        onMove={this.onMove} onBlockedMove={this.onBlockedMove}
+                                        onValidBoard={this.gameOver} />
+                            </Grid>
+                        </Hidden>
+                        <Hidden smDown>
+                            <Grid item xs={9} alignContent="center">
+                                <Board rows={5} cols={5} seed={this.state.seed} locked={this.state.boardLocked}
+                                        onMove={this.onMove} onBlockedMove={this.onBlockedMove}
+                                        onValidBoard={this.gameOver} />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <CompletionHistory showHeader
+                                        registerCompletionListener={(listener) => this.completionHistoryListeners[0] = listener}
+                                        unregisterCompletionListener={(listener) => this.completionHistoryListeners[0] = null} />
+                            </Grid>
+                        </Hidden>
+                        <Dialog onClose={this.hideStatsPopup} open={this.state.statsPopupVisible}
+                                aria-labelledby="stats-popup-title">
+                            <DialogTitle id="stats-popup-title" disableTypography>
+                                <Typography variant="h6">
+                                    Stats
+                                </Typography>
+                            </DialogTitle>
+                            <CompletionHistory registerCompletionListener={(listener) => this.completionHistoryListeners[1] = listener}
+                                    unregisterCompletionListener={() => this.completionHistoryListeners[1] = null} />
+                        </Dialog>
                     </Grid>
                     <Snackbar open={this.state.boardLockedMessageVisible} autoHideDuration={3000}>
                         <Alert severity="info" onClose={this.closeBoardLockedPopup}>
