@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "org.snowjak"
-version = "0.2.4" //if (version != "unspecified") version else "0.0.0"
+version = "0.3.0"
 description = "Simple tile-rotation game"
 
 repositories {

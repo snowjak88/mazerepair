@@ -4,7 +4,7 @@
 //
 // Borrowed from https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
 //
-type RNG = () => number;
+export type RNG = () => number;
 
 const xmur3 = (str:string): RNG => {
     for(var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {

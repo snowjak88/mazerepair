@@ -16,3 +16,5 @@ dist/
 build/
 .gradle/
 /src/main/frontend/public/assets/tiles/
+
+/bin/**

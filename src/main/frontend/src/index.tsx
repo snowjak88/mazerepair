@@ -3,12 +3,17 @@ import ReactDOM from "react-dom";
 import Application from "./Application";
 import reportWebVital from "./reportWebVital";
 
+import { store } from "./ApplicationStore";
+
 import "./index.css";
+import { Provider } from "react-redux";
 
 ReactDOM.render(
     (
         <React.StrictMode>
-            <Application/>
+            <Provider store={store}>
+            <Application boardRows={5} boardColumns={5}/>
+            </Provider>
         </React.StrictMode>
     ), document.getElementById("root")
 );

@@ -2,9 +2,10 @@
 //
 // Tile as described in .../tiles.json
 //
+import { Cloneable } from '../state/Cloneable';
 import Direction from './Direction';
 
-class Tile {
+class Tile implements Cloneable {
     id: string;
     name: string;
     image: string;
