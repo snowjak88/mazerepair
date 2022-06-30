@@ -7,15 +7,20 @@ import { store } from "./ApplicationStore";
 
 import "./index.css";
 import { Provider } from "react-redux";
+import { ThemeProvider } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
+
+const theme = createTheme();
 
 ReactDOM.render(
-    (
-        <React.StrictMode>
-            <Provider store={store}>
-            <Application boardRows={5} boardColumns={5}/>
-            </Provider>
-        </React.StrictMode>
-    ), document.getElementById("root")
+	<React.StrictMode>
+		<ThemeProvider theme={theme}>
+			<Provider store={store}>
+				<Application boardRows={5} boardColumns={5} />
+			</Provider>
+		</ThemeProvider>
+	</React.StrictMode>,
+	document.getElementById("root")
 );
 
 // If you want to start measuring performance in your app, pass a function

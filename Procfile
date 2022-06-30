@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar build/libs/maze-repair-0.3.2.jar
+web: java -Dserver.port=$PORT -jar build/libs/maze-repair-0.3.3.jar

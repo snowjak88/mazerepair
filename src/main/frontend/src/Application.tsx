@@ -17,7 +17,6 @@ import {
 	DialogTitle,
 	Divider,
 	Grid,
-	Hidden,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -25,16 +24,18 @@ import {
 	Toolbar,
 	Tooltip,
 	Typography,
-} from "@material-ui/core";
-import { Alert, AlertTitle } from "@material-ui/lab";
-import { Theme, makeStyles } from "@material-ui/core/styles";
+	useMediaQuery,
+	Theme
+} from "@mui/material";
+import { Alert, AlertTitle } from "@mui/lab";
+import { makeStyles } from "@mui/styles";
 
-import DoneAllIcon from "@material-ui/icons/DoneAll";
-import MenuIcon from "@material-ui/icons/Menu";
-import SettingsBackupRestoreIcon from "@material-ui/icons/SettingsBackupRestore";
-import ShuffleIcon from "@material-ui/icons/Shuffle";
-import RotateRightIcon from "@material-ui/icons/RotateRight";
-import TodayIcon from "@material-ui/icons/Today";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import MenuIcon from "@mui/icons-material/Menu";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+import RotateRightIcon from "@mui/icons-material/RotateRight";
+import TodayIcon from "@mui/icons-material/Today";
 
 import Board from "./components/Board";
 import CompletionHistory from "./components/CompletionHistory";
@@ -125,12 +126,11 @@ const Application = (props: ApplicationProp) => {
 		setIsTodayPuzzle(false);
 	};
 
-	const resetBoardAction = (): void => {		
-		if(isTodayPuzzle && (solvedPuzzleForDay === buildTodayString())) {
+	const resetBoardAction = (): void => {
+		if (isTodayPuzzle && solvedPuzzleForDay === buildTodayString()) {
 			setBoardLocked(true);
 			setTodayPuzzleSolvedPopupVisible(true);
-		}
-		else {
+		} else {
 			dispatch(resetBoard());
 			setBoardLocked(false);
 		}
@@ -160,23 +160,29 @@ const Application = (props: ApplicationProp) => {
 	//   Unlock the board.
 	useEffect(() => {
 		const todayString = buildTodayString();
-		const todayAlreadyPlayed = (solvedPuzzleForDay === todayString);
+		const todayAlreadyPlayed = solvedPuzzleForDay === todayString;
 
-		if(isTodayPuzzle && todayAlreadyPlayed) {
+		if (isTodayPuzzle && todayAlreadyPlayed) {
 			setBoardLocked(true);
 			setTodayPuzzleSolvedPopupVisible(true);
-		}
-		else {
+		} else {
 			dispatch(
 				generateBoard({
 					rows: props.boardRows,
 					columns: props.boardColumns,
-					rng
+					rng,
 				})
 			);
 			setBoardLocked(false);
 		}
-	}, [props.boardRows, props.boardColumns, rng, solvedPuzzleForDay, isTodayPuzzle, dispatch]);
+	}, [
+		props.boardRows,
+		props.boardColumns,
+		rng,
+		solvedPuzzleForDay,
+		isTodayPuzzle,
+		dispatch,
+	]);
 
 	//
 	// When the board is complete and not locked:
@@ -238,21 +244,25 @@ const Application = (props: ApplicationProp) => {
 							</IconButton>
 							<Typography>Random Maze</Typography>
 						</MenuItem>
-						<Hidden mdUp>
-							<Divider variant="middle" />
-							<MenuItem
-								onClick={() =>
-									onGameMenuAction(() =>
-										setStatsPopupVisible(true)
-									)
-								}
-								aria-label="show stats">
-								<IconButton>
-									<DoneAllIcon />
-								</IconButton>
-								<Typography>Stats</Typography>
-							</MenuItem>
-						</Hidden>
+						{useMediaQuery((theme: Theme) =>
+							theme.breakpoints.up("md")
+						) ? null : (
+							<>
+								<Divider variant="middle" />
+								<MenuItem
+									onClick={() =>
+										onGameMenuAction(() =>
+											setStatsPopupVisible(true)
+										)
+									}
+									aria-label="show stats">
+									<IconButton>
+										<DoneAllIcon />
+									</IconButton>
+									<Typography>Stats</Typography>
+								</MenuItem>
+							</>
+						)}
 						<Divider variant="middle" />
 						<MenuItem
 							onClick={() => onGameMenuAction(resetBoardAction)}
@@ -277,24 +287,25 @@ const Application = (props: ApplicationProp) => {
 				</Toolbar>
 			</AppBar>
 			<Grid container wrap="nowrap" direction="row">
-				<Hidden mdUp>
+				{useMediaQuery((theme: Theme) => theme.breakpoints.up("md")) ? (
+					<>
+						<Grid item xs={9} alignContent="center">
+							<Board locked={boardLocked} onMove={onMove} />
+						</Grid>
+						<Grid item xs={3}>
+							<CompletionHistory showHeader />
+						</Grid>
+					</>
+				) : (
 					<Grid item xs={12} alignContent="center">
 						<Board locked={boardLocked} onMove={onMove} />
 					</Grid>
-				</Hidden>
-				<Hidden smDown>
-					<Grid item xs={9} alignContent="center">
-						<Board locked={boardLocked} onMove={onMove} />
-					</Grid>
-					<Grid item xs={3}>
-						<CompletionHistory showHeader />
-					</Grid>
-				</Hidden>
+				)}
 				<Dialog
 					onClose={() => setStatsPopupVisible(false)}
 					open={statsPopupVisible}
 					aria-labelledby="stats-popup-title">
-					<DialogTitle id="stats-popup-title" disableTypography>
+					<DialogTitle id="stats-popup-title">
 						<Typography variant="h6">Stats</Typography>
 					</DialogTitle>
 					<CompletionHistory />

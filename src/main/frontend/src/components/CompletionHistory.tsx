@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { List, ListItem, ListItemIcon, ListItemText, Paper, Typography } from '@material-ui/core';
+import { List, ListItem, ListItemIcon, ListItemText, Paper, Typography } from '@mui/material';
 
-import DoneAllIcon from '@material-ui/icons/DoneAll';
-import RotateRightIcon from '@material-ui/icons/RotateRight';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import RotateRightIcon from '@mui/icons-material/RotateRight';
 
 import { useAppSelector } from "../state/stateHooks";
 
