@@ -15,6 +15,7 @@ dist/
 ### Gradle Generated
 build/
 .gradle/
-/src/main/frontend/public/assets/tiles/
+src/main/frontend/public/assets/tiles/
 
 /bin/**
+src/main/frontend/yarn.lock

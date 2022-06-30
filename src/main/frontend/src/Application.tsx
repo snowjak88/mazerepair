@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "./state/stateHooks";
 import { reseed as reseedRNG } from "./state/RNGState";
 import {
 	reset as resetBoard,
-	generate as generateBoard
+	generate as generateBoard,
 } from "./state/BoardState";
 import { recordGameMoveCount } from "./state/StatsState";
 
@@ -59,18 +59,22 @@ const Application = (props: ApplicationProp) => {
 		useState<Element>();
 
 	const [moveCount, setMoveCount] = useState(0);
-    const [ isTodayPuzzle, setIsTodayPuzzle ] = useState(false);
+	const [isTodayPuzzle, setIsTodayPuzzle] = useState(false);
 	const [boardLocked, setBoardLocked] = useState(false);
 
-    const [statsPopupVisible, setStatsPopupVisible] = useState(false);
-    const [ todayPuzzleSolvedPopupVisible, setTodayPuzzleSolvedPopupVisible ] = useState(false);
+	const [statsPopupVisible, setStatsPopupVisible] = useState(false);
+	const [todayPuzzleSolvedPopupVisible, setTodayPuzzleSolvedPopupVisible] =
+		useState(false);
 	const [boardLockedMessageVisible, setBoardLockedMessageVisible] =
 		useState(false);
 	const [victoryMessageVisible, setVictoryMessageVisible] = useState(false);
 
 	const rng = useAppSelector((state) => state.rng.rng);
+	const board = useAppSelector((state) => state.board.board);
 	const isBoardComplete = useAppSelector((state) => state.board.isComplete);
-    const solvedPuzzleForDay = useAppSelector(state => state.stats.solvedPuzzleForDay);
+	const solvedPuzzleForDay = useAppSelector(
+		(state) => state.stats.solvedPuzzleForDay
+	);
 
 	const onGameMenuOpenClick = (
 		e: React.MouseEvent<Element, MouseEvent>
@@ -84,40 +88,52 @@ const Application = (props: ApplicationProp) => {
 		action?.();
 	};
 
-    const buildTodayString = ():string => {
-        const now = new Date();
-        return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-    };
-    const setUpRngSeedToday = ():void => {
-        const todayString = buildTodayString();
-        const todayPuzzleAlreadySolved = (solvedPuzzleForDay === todayString);
+	const buildTodayString = (): string => {
+		const now = new Date();
+		return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+	};
 
-        if(!todayPuzzleAlreadySolved)
-		    dispatch(reseedRNG(todayString));
+	//
+	// Game UI state-transitions:
+	//
+	// Set up the appropriate RNG.
+	//
+	// When RNG changes = new game:
+	//   If it's a "today-game" and we've already played today:
+	//      Lock the board. Display the "no more today" popup.
+	//   Otherwise:
+	//      Generate a fresh board. Ensure it's unlocked.
+	//
+	// When the board is complete and not locked:
+	//   Show the victory popup.
+	//   Record the victory.
+	//   Lock the board.
+	//
 
-        setIsTodayPuzzle(true);
-
-        setBoardLocked(todayPuzzleAlreadySolved);
-        setTodayPuzzleSolvedPopupVisible(todayPuzzleAlreadySolved);
-    }
-    const setUpRngSeedRandom = ():void => {
-        dispatch(
+	const setUpRngSeedToday = (): void => {
+		dispatch(reseedRNG(buildTodayString()));
+		setIsTodayPuzzle(true);
+	};
+	const setUpRngSeedRandom = (): void => {
+		dispatch(
 			reseedRNG(
 				`${Math.random().toString(36).substring(2, 15)}${Math.random()
 					.toString(36)
 					.substring(2, 15)}`
 			)
 		);
-        
-        setIsTodayPuzzle(false);
+		setIsTodayPuzzle(false);
+	};
 
-        setBoardLocked(false);
-        setTodayPuzzleSolvedPopupVisible(false);
-    }
-
-	const resetBoardAction = (): void => {
-		dispatch(resetBoard());
-        setBoardLocked(false);
+	const resetBoardAction = (): void => {		
+		if(isTodayPuzzle && (solvedPuzzleForDay === buildTodayString())) {
+			setBoardLocked(true);
+			setTodayPuzzleSolvedPopupVisible(true);
+		}
+		else {
+			dispatch(resetBoard());
+			setBoardLocked(false);
+		}
 	};
 
 	const onMove = (): void => {
@@ -125,21 +141,69 @@ const Application = (props: ApplicationProp) => {
 		else setBoardLockedMessageVisible(true);
 	};
 
-    useEffect(setUpRngSeedToday, [props.boardRows, props.boardColumns, solvedPuzzleForDay, dispatch]);
+	//
+	// Default effect. When the component is (re-)created,
+	// set up today's game as the RNG.
+	useEffect(setUpRngSeedToday, [
+		props.boardRows,
+		props.boardColumns,
+		dispatch,
+	]);
 
+	//
+	// When the RNG changes:
+	// If this is a "today game" and we've already played today:
+	//   Lock the board.
+	//   Display the "no more today game" popup.
+	// Otherwise:
+	//   Generate a fresh board using the RNG.
+	//   Unlock the board.
 	useEffect(() => {
-		dispatch(
-				generateBoard({ rows:props.boardRows, columns:props.boardColumns, rng})
+		const todayString = buildTodayString();
+		const todayAlreadyPlayed = (solvedPuzzleForDay === todayString);
+
+		if(isTodayPuzzle && todayAlreadyPlayed) {
+			setBoardLocked(true);
+			setTodayPuzzleSolvedPopupVisible(true);
+		}
+		else {
+			dispatch(
+				generateBoard({
+					rows: props.boardRows,
+					columns: props.boardColumns,
+					rng
+				})
 			);
-	}, [props.boardRows, props.boardColumns, dispatch, rng]);
+			setBoardLocked(false);
+		}
+	}, [props.boardRows, props.boardColumns, rng, solvedPuzzleForDay, isTodayPuzzle, dispatch]);
 
+	//
+	// When the board is complete and not locked:
+	//   Show the victory popup.
+	//   Record the victory.
+	//   Lock the board.
 	useEffect(() => {
-		if (isBoardComplete && !boardLocked) {
+		if (board && isBoardComplete && !boardLocked) {
 			setVictoryMessageVisible(true);
 			setBoardLocked(true);
-			dispatch(recordGameMoveCount({ moveCount, puzzleForDay: (isTodayPuzzle) ? buildTodayString() : undefined }));
+			dispatch(
+				recordGameMoveCount({
+					moveCount,
+					puzzleForDay: isTodayPuzzle
+						? buildTodayString()
+						: undefined,
+				})
+			);
 		}
-	}, [isBoardComplete, boardLocked, moveCount, isTodayPuzzle, dispatch]);
+	}, [
+		board,
+		isBoardComplete,
+		boardLocked,
+		moveCount,
+		isTodayPuzzle,
+		dispatch,
+	]);
 
 	return (
 		<Container>
@@ -159,9 +223,7 @@ const Application = (props: ApplicationProp) => {
 						open={gameMenuOpen}
 						onClose={() => setGameMenuOpen(false)}>
 						<MenuItem
-							onClick={() =>
-								onGameMenuAction(setUpRngSeedToday)
-							}
+							onClick={() => onGameMenuAction(setUpRngSeedToday)}
 							aria-label="today's maze">
 							<IconButton>
 								<TodayIcon />
@@ -169,9 +231,7 @@ const Application = (props: ApplicationProp) => {
 							<Typography>Today's Maze</Typography>
 						</MenuItem>
 						<MenuItem
-							onClick={() =>
-								onGameMenuAction(setUpRngSeedRandom)
-							}
+							onClick={() => onGameMenuAction(setUpRngSeedRandom)}
 							aria-label="random maze">
 							<IconButton>
 								<ShuffleIcon />
@@ -248,12 +308,15 @@ const Application = (props: ApplicationProp) => {
 					Maze is completed. Use the menu to generate another maze.
 				</Alert>
 			</Snackbar>
-            <Snackbar open={todayPuzzleSolvedPopupVisible} autoHideDuration={3000}>
+			<Snackbar
+				open={todayPuzzleSolvedPopupVisible}
+				autoHideDuration={3000}>
 				<Alert
 					severity="info"
 					onClose={() => setTodayPuzzleSolvedPopupVisible(false)}>
 					<AlertTitle>Today's Puzzle Already Solved</AlertTitle>
-					You've already solved today's puzzle. Use the menu to generate a random maze.
+					You've already solved today's puzzle. Use the menu to
+					generate a random maze.
 				</Alert>
 			</Snackbar>
 			<Snackbar
