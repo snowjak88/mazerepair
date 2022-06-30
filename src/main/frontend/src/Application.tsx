@@ -58,15 +58,19 @@ const Application = (props: ApplicationProp) => {
 	const [gameMenuAnchorElement, setGameMenuAnchorElement] =
 		useState<Element>();
 
-	const [statsPopupVisible, setStatsPopupVisible] = useState(false);
 	const [moveCount, setMoveCount] = useState(0);
+    const [ isTodayPuzzle, setIsTodayPuzzle ] = useState(false);
 	const [boardLocked, setBoardLocked] = useState(false);
+
+    const [statsPopupVisible, setStatsPopupVisible] = useState(false);
+    const [ todayPuzzleSolvedPopupVisible, setTodayPuzzleSolvedPopupVisible ] = useState(false);
 	const [boardLockedMessageVisible, setBoardLockedMessageVisible] =
 		useState(false);
 	const [victoryMessageVisible, setVictoryMessageVisible] = useState(false);
 
 	const rng = useAppSelector((state) => state.rng.rng);
 	const isBoardComplete = useAppSelector((state) => state.board.isComplete);
+    const solvedPuzzleForDay = useAppSelector(state => state.stats.solvedPuzzleForDay);
 
 	const onGameMenuOpenClick = (
 		e: React.MouseEvent<Element, MouseEvent>
@@ -80,11 +84,21 @@ const Application = (props: ApplicationProp) => {
 		action?.();
 	};
 
-    const setUpRngSeedToday = ():void => {
+    const buildTodayString = ():string => {
         const now = new Date();
-		dispatch(
-			reseedRNG(`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`)
-		);
+        return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    };
+    const setUpRngSeedToday = ():void => {
+        const todayString = buildTodayString();
+        const todayPuzzleAlreadySolved = (solvedPuzzleForDay === todayString);
+
+        if(!todayPuzzleAlreadySolved)
+		    dispatch(reseedRNG(todayString));
+
+        setIsTodayPuzzle(true);
+
+        setBoardLocked(todayPuzzleAlreadySolved);
+        setTodayPuzzleSolvedPopupVisible(todayPuzzleAlreadySolved);
     }
     const setUpRngSeedRandom = ():void => {
         dispatch(
@@ -94,10 +108,16 @@ const Application = (props: ApplicationProp) => {
 					.substring(2, 15)}`
 			)
 		);
+        
+        setIsTodayPuzzle(false);
+
+        setBoardLocked(false);
+        setTodayPuzzleSolvedPopupVisible(false);
     }
 
 	const resetBoardAction = (): void => {
 		dispatch(resetBoard());
+        setBoardLocked(false);
 	};
 
 	const onMove = (): void => {
@@ -105,22 +125,21 @@ const Application = (props: ApplicationProp) => {
 		else setBoardLockedMessageVisible(true);
 	};
 
-    useEffect(setUpRngSeedToday, [props.boardRows, props.boardColumns, dispatch]);
+    useEffect(setUpRngSeedToday, [props.boardRows, props.boardColumns, solvedPuzzleForDay, dispatch]);
 
 	useEffect(() => {
-        console.log("Effect: generating board ...");
 		dispatch(
 				generateBoard({ rows:props.boardRows, columns:props.boardColumns, rng})
 			);
 	}, [props.boardRows, props.boardColumns, dispatch, rng]);
 
 	useEffect(() => {
-		if (isBoardComplete) {
+		if (isBoardComplete && !boardLocked) {
 			setVictoryMessageVisible(true);
 			setBoardLocked(true);
-			dispatch(recordGameMoveCount({ moveCount }));
+			dispatch(recordGameMoveCount({ moveCount, puzzleForDay: (isTodayPuzzle) ? buildTodayString() : undefined }));
 		}
-	}, [isBoardComplete, moveCount, dispatch]);
+	}, [isBoardComplete, boardLocked, moveCount, isTodayPuzzle, dispatch]);
 
 	return (
 		<Container>
@@ -227,6 +246,14 @@ const Application = (props: ApplicationProp) => {
 					onClose={() => setBoardLockedMessageVisible(false)}>
 					<AlertTitle>Board Locked</AlertTitle>
 					Maze is completed. Use the menu to generate another maze.
+				</Alert>
+			</Snackbar>
+            <Snackbar open={todayPuzzleSolvedPopupVisible} autoHideDuration={3000}>
+				<Alert
+					severity="info"
+					onClose={() => setTodayPuzzleSolvedPopupVisible(false)}>
+					<AlertTitle>Today's Puzzle Already Solved</AlertTitle>
+					You've already solved today's puzzle. Use the menu to generate a random maze.
 				</Alert>
 			</Snackbar>
 			<Snackbar

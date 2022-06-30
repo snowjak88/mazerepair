@@ -81,18 +81,22 @@ const generateBoard = (
 
 	//
 	// Iterate across all possible Tiles for this row/column.
-	for (let tile of shuffleArray(
+	const shuffledTiles = shuffleArray(
 		TileRepository.getInstance().getTiles(),
 		rng
-	)) {
+	);
+	for (let tile of shuffledTiles) {
 		//
 		// Does this tile fit in this board?
-		board[row][column] = tile;
-		if (!isTileFitting(board, row, column)) continue;
-		//
-		// Attempt to depth-recurse to find the next tile.
-		const recurseResult = generateBoard(board, rng, row, column + 1);
-		if (recurseResult) return true;
+    // Try all 4 rotations of the same tile.
+		for (var rotations = 0; rotations < 4; rotations++) {
+			board[row][column] = tile.rotate(rotations);
+			if (!isTileFitting(board, row, column)) continue;
+			//
+			// Attempt to depth-recurse to find the next tile.
+			const recurseResult = generateBoard(board, rng, row, column + 1);
+			if (recurseResult) return true;
+		}
 	}
 
 	board[row][column] = null;
@@ -147,7 +151,8 @@ const boardSlice = createSlice({
 			while (!generateBoard(board, action.payload.rng))
 				console.log(`Re-generating board ...`);
 
-			shuffleBoard(board as Tile[][], action.payload.rng);
+			while (isBoardComplete(board))
+				shuffleBoard(board as Tile[][], action.payload.rng);
 
 			state.board = board as Tile[][];
 			state.startingBoard = board as Tile[][];

@@ -13,7 +13,8 @@
     "image": "corner.png",
     "paths": [
       [ "EAST", "SOUTH" ]
-    ]
+    ],
+    "frequency": 2
   },
   {
     "id": "opposite-corners",
@@ -30,7 +31,8 @@
     "image": "3-intersection.png",
     "paths": [
       ["WEST", "EAST", "SOUTH"]
-    ]
+    ],
+    "frequency": 2
   },
   {
     "id": "4-intersection",

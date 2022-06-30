@@ -10,6 +10,7 @@ type TileDescriptor = {
     name: string;
     image: string;
     paths: string[][];
+    frequency?: number;
 };
 
 class TileRepository {
@@ -28,20 +29,24 @@ class TileRepository {
         this.tiles = [];
 
         const descriptors = tilesJson as TileDescriptor[];
+        const baseFrequency = descriptors.reduce((min, descriptor) => Math.min(min, (descriptor.frequency ?? 1.0)), 1.0);
         descriptors.forEach(descriptor => {
             const paths = descriptor.paths.map(path => {
                 return path.map(Direction.fromString);
             });
-            this.tiles.push(new Tile(descriptor.id, descriptor.name, descriptor.image, paths));
+
+            descriptor.frequency = Math.ceil((descriptor.frequency ?? 1.0) / baseFrequency);
+
+            for(let i=0;i<descriptor.frequency; i++)
+                this.tiles.push(new Tile(descriptor.id, descriptor.name, descriptor.image, paths));
         });
-        this.tiles.sort((a,b) => (a.id < b.id) ? -1 : 1);
     }
 
     public getTiles(): Tile[] {
         return this.tiles;
     }
 
-    public getTile(id: string = ""): Tile {
+    public getTile(id: string = "", rnd: () => number = Math.random): Tile {
 
         const matchingTiles = (id) ? this.tiles.filter(tile => tile.id === id) : this.tiles;
         if(id && matchingTiles.length === 0) {
@@ -50,7 +55,7 @@ class TileRepository {
         if(matchingTiles.length === 1) {
             throw matchingTiles[0];
         }
-        return matchingTiles[Math.floor( Math.random() * matchingTiles.length )];
+        return matchingTiles[Math.floor( rnd() * matchingTiles.length )];
     }
 }
 
