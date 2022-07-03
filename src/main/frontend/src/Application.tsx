@@ -132,6 +132,7 @@ const Application = (props: ApplicationProp) => {
 			setTodayPuzzleSolvedPopupVisible(true);
 		} else {
 			dispatch(resetBoard());
+                        setMoveCount(0);
 			setBoardLocked(false);
 		}
 	};
@@ -173,6 +174,7 @@ const Application = (props: ApplicationProp) => {
 					rng,
 				})
 			);
+                        setMoveCount(0);
 			setBoardLocked(false);
 		}
 	}, [
